@@ -1,0 +1,56 @@
+---
+title: "Get and Unzip Data"
+author: "Baldvin Einarsson"
+date: "March 12, 2016"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, echo=FALSE, purl=FALSE, warning=FALSE, message=FALSE, results='hide'}
+library(knitr)
+opts_knit$set(comment=NA)
+
+# NB: We need to allow duplicate labels in order to purl
+#  (Even though nothing is duplicated)
+options(knitr.duplicate.label = 'allow')
+purl(input="getData.Rmd", output="getData.R", documentation = 1)
+```
+
+```{r setFileURL, echo=TRUE}
+fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+zipName <- "activityData.zip"
+```
+
+
+This markdown file generates an `R` script which obtains the data and unzips it into a file called `r zipName`. The data comes from the following location:
+
+```{r showURL, echo=FALSE, results='asis', purl=FALSE}
+cat("\n")
+cat(paste0("[",fileURL,"](",fileURL,")"))
+```
+
+We start by downloading the file (if needed):
+
+```{r downloadFile, echo=TRUE}
+
+if (!file.exists(zipName)){
+  download.file(url=fileURL, destfile = zipName, method='curl')
+}
+
+```
+
+Then, we unzip it and remove the space in the directory name:
+
+```{r unzip, results='hide'}
+
+# Get the file names of the files in the zip:
+zippedFiles <- unzip(zipfile = zipName, list=TRUE)
+# Obtain the directory name:
+zipDir <- strsplit(zippedFiles$Name[1],split="/")[[1]][1]
+
+if (!file.exists(zipDir)){
+  unzip(zipfile = zipName)
+}
+```
+
