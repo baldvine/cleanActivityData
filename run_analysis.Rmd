@@ -52,29 +52,65 @@ stdFeatures <- grepl("std",features$Name)
 
 First, we read the training set:
 ```{r getTrainingSet}
-trainingSubject <- read.table(file=paste0(dataLoc,"train/subject_train.txt"), 
-                               col.names = "SubjectID")
-trainingActivity <- read.table(file=paste0(dataLoc,"train/y_train.txt"), 
-                               col.names = "ActivityNumber")
-trainingFeatures <- read.table(file=paste0(dataLoc,"train/X_train.txt"), 
-                               col.names = features$Name)
+trainingData <- cbind(read.table(file=paste0(dataLoc,"train/subject_train.txt"),
+                                 col.names = "SubjectID"),
+                      read.table(file=paste0(dataLoc,"train/y_train.txt"), 
+                                 col.names = "Activity"),
+                      read.table(file=paste0(dataLoc,"train/X_train.txt"), 
+                                 col.names = features$Name))
 ```
 And then the test set:
 ```{r getTestSet}
-testSubject <- read.table(file=paste0(dataLoc,"test/subject_test.txt"), 
-                               col.names = "SubjectID")
-testActivity <- read.table(file=paste0(dataLoc,"test/y_test.txt"), 
-                               col.names = "ActivityNumber")
-testFeatures <- read.table(file=paste0(dataLoc,"test/X_test.txt"), 
-                               col.names = features$Name)
+
+testData <- cbind(read.table(file=paste0(dataLoc,"test/subject_test.txt"), 
+                               col.names = "SubjectID"),
+                  read.table(file=paste0(dataLoc,"test/y_test.txt"), 
+                               col.names = "Activity"),
+                  read.table(file=paste0(dataLoc,"test/X_test.txt"), 
+                               col.names = features$Name))
 ```
 
 
 # Merge
 
-We now create a data frame from the above two types of data
+We now create a data frame from the above two types of data. However, we only extract the means and standard deviations of each measurement. Note that I have therefore skipped the columns which are the Fourier transformations of the measurements.
 
-```{r}
-combinedData
+```{r mergeAndSubset}
+selectedColumns <- c("SubjectID", "Activity",
+                     grep("^[^f].+\\.mean\\.",names(testData),value = TRUE),
+                     grep("^[^f].+std",names(testData),value = TRUE))
+
+combinedData <- rbind(trainingData[,selectedColumns],
+                      testData[,selectedColumns])
+
+# Clear the raw data and flush memory
+rm(list=c("trainingData","testData")); gc()
 ```
+
+Ok, this leaves us with a total of `r nrow(combinedData)` rows and `r ncol(combinedData)` columns. Let's now rename the columns more clearly:
+
+```{r renameColumns}
+# First, we remove the "t" at the start of variable names:
+names(combinedData) <- gsub("^t","",names(combinedData))
+# Change "Acc" to a more descriptive "Acceleration":
+names(combinedData) <- gsub("Acc","Acceleration",names(combinedData))
+# Change "Mag" to a more descriptive "Magnitude":
+names(combinedData) <- gsub("Mag","Magnitude",names(combinedData))
+# Change "Gyro" to a more descriptive "Gyroskope":
+names(combinedData) <- gsub("Gyro","Gyroskope",names(combinedData))
+# Change "std" to "sd" (for R-style 'standard deviation'):
+names(combinedData) <- gsub("\\.std","\\.sd",names(combinedData))
+
+
+# Then, we clean the dots and such:
+names(combinedData) <- gsub("\\.{2,3}","",names(combinedData))
+
+```
+
+Next, we add descriptive values to the activity:
+
+```{r descriptiveActivity}
+combinedData$Activity <- activityLabels$Activity[combinedData$Activity]
+```
+
 
