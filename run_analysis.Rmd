@@ -1,0 +1,80 @@
+---
+title: "Merge Data Sets - Create Tidy Data"
+author: "Baldvin Einarsson"
+date: "March 12, 2016"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, echo=FALSE, purl=FALSE, warning=FALSE, message=FALSE, results='hide'}
+library(knitr)
+opts_knit$set(comment=NA)
+
+# NB: We need to allow duplicate labels in order to purl
+#  (Even though nothing is duplicated)
+options(knitr.duplicate.label = 'allow')
+purl(input="run_analysis.Rmd", output="run_analysis.R", documentation = 1)
+```
+
+We assume that the data has been downloade and unzipped, the location of which is the folder `UCI HAR Dataset/`:
+```{r setFolderLoc}
+dataLoc <- "UCI HAR Dataset/"
+```
+
+# Get Labels and Feature Names
+
+First, we get the activity labels:
+```{r getLabels}
+activityLabels <- read.table(paste0(dataLoc,"activity_labels.txt"),
+                             header = FALSE,
+                             col.names = c("Value","Activity"),
+                             stringsAsFactors = FALSE
+                             )
+```
+
+Then, we obtain the names of the features:
+```{r getFeatures}
+features <- read.table(paste0(dataLoc,"features.txt"),
+                       header=FALSE,
+                       row.names = 1,
+                       col.names = c("RowNum","Name"),
+                       stringsAsFactors = FALSE)
+```
+
+Since we're only interested in the means and standard deviations, we find out which features have "mean" and "std" in their names:
+```{r findMeanStdFeatures}
+meanFeatures <- grepl("mean",features$Name)
+stdFeatures <- grepl("std",features$Name)
+```
+
+# Read Data
+
+First, we read the training set:
+```{r getTrainingSet}
+trainingSubject <- read.table(file=paste0(dataLoc,"train/subject_train.txt"), 
+                               col.names = "SubjectID")
+trainingActivity <- read.table(file=paste0(dataLoc,"train/y_train.txt"), 
+                               col.names = "ActivityNumber")
+trainingFeatures <- read.table(file=paste0(dataLoc,"train/X_train.txt"), 
+                               col.names = features$Name)
+```
+And then the test set:
+```{r getTestSet}
+testSubject <- read.table(file=paste0(dataLoc,"test/subject_test.txt"), 
+                               col.names = "SubjectID")
+testActivity <- read.table(file=paste0(dataLoc,"test/y_test.txt"), 
+                               col.names = "ActivityNumber")
+testFeatures <- read.table(file=paste0(dataLoc,"test/X_test.txt"), 
+                               col.names = features$Name)
+```
+
+
+# Merge
+
+We now create a data frame from the above two types of data
+
+```{r}
+combinedData
+```
+
