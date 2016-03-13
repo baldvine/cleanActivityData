@@ -13,21 +13,21 @@ The raw data features come from the accelerometer and gyroscope 3-axial raw sign
 
 Here, we describe the dataset `activityMonitors.csv` which contains combined datasets from activity monitors described above. The column "SubjectID" contains integer values from 1 to 30, denoting the test subject. The "Activity" column has values for each of the six different activities, as described in the original dataset.
 
-The next 20 columns are the averages of each measurement, as grouped by the subject and activity. Note the we have excluded the Fourier transformed measurements, but they could easily be added to the dataset. Further, we have ordered the dataset so that subjects and activities are listed contiguosly. For details on all these procedures, see the markdown file `run_analysis.md`.
+The next 20 columns are the averages of each measurement, as grouped by the subject and activity. The column names have been changed to reflect different types of measurements. Note the we have excluded the Fourier transformed measurements, but they could easily be added to the dataset. Further, we have ordered the dataset so that subjects and activities are listed contiguosly. For details on all these procedures, see the markdown file `run_analysis.md`.
 
-Suffix 'XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
+Suffixes `X`, `Y` or `Z` (marked by `[XYZ]`) are used to denote 3-axial signals in the X, Y and Z directions.
 
-* "SubjectID"
-* "Activity"
-* "BodyAcceleration.mean(XYZ)"
-* "GravityAcceleration.mean(XYZ)"
-* "BodyAccelerationJerk.mean(XYZ)"
-* "BodyGyroskope.mean(XYZ)"
-* "BodyGyroskopeJerk.mean(XYZ)"
-* "BodyAccelerationMagnitude.mean"
-* "GravityAccelerationMagnitude.mean"
-* "BodyAccelerationJerkMagnitude.mean"
-* "BodyGyroskopeMagnitude.mean"
-* "BodyGyroskopeJerkMagnitude.mean"
+* `SubjectID`
+* `Activity`
+* `BodyAcceleration.mean[XYZ]`
+* `GravityAcceleration.mean[XYZ]`
+* `BodyAccelerationJerk.mean[XYZ]`
+* `BodyGyroskope.mean[XYZ]`
+* `BodyGyroskopeJerk.mean[XYZ]`
+* `BodyAccelerationMagnitude.mean`
+* `GravityAccelerationMagnitude.mean`
+* `BodyAccelerationJerkMagnitude.mean`
+* `BodyGyroskopeMagnitude.mean`
+* `BodyGyroskopeJerkMagnitude.mean`
 
 Again, note that all measurements were normalized and bounded within [-1,1].
