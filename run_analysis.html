@@ -116,7 +116,103 @@ $(document).ready(function () {
 </div>
 
 
-<p>We assume that the data has been downloade and unzipped, the location of which is <code>UCI HAR Dataset/</code></p>
+<p>We assume that the data has been downloade and unzipped (via script <code>getData.R</code>), the location of which is the folder <code>UCI HAR Dataset/</code>:</p>
+<pre class="r"><code>dataLoc &lt;- &quot;UCI HAR Dataset/&quot;</code></pre>
+<div id="get-labels-and-feature-names" class="section level1">
+<h1>Get Labels and Feature Names</h1>
+<p>First, we get the activity labels:</p>
+<pre class="r"><code>activityLabels &lt;- read.table(paste0(dataLoc,&quot;activity_labels.txt&quot;),
+                             header = FALSE,
+                             col.names = c(&quot;Value&quot;,&quot;Activity&quot;),
+                             stringsAsFactors = FALSE
+                             )</code></pre>
+<p>Then, we obtain the names of the features:</p>
+<pre class="r"><code>features &lt;- read.table(paste0(dataLoc,&quot;features.txt&quot;),
+                       header=FALSE,
+                       row.names = 1,
+                       col.names = c(&quot;RowNum&quot;,&quot;Name&quot;),
+                       stringsAsFactors = FALSE)</code></pre>
+<p>Since we’re only interested in the means and standard deviations, we find out which features have “mean” and “std” in their names:</p>
+<pre class="r"><code>meanFeatures &lt;- grepl(&quot;mean&quot;,features$Name)
+stdFeatures &lt;- grepl(&quot;std&quot;,features$Name)</code></pre>
+</div>
+<div id="read-data" class="section level1">
+<h1>Read Data</h1>
+<p>First, we read the training set:</p>
+<pre class="r"><code>trainingData &lt;- cbind(read.table(file=paste0(dataLoc,&quot;train/subject_train.txt&quot;),
+                                 col.names = &quot;SubjectID&quot;),
+                      read.table(file=paste0(dataLoc,&quot;train/y_train.txt&quot;), 
+                                 col.names = &quot;Activity&quot;),
+                      read.table(file=paste0(dataLoc,&quot;train/X_train.txt&quot;), 
+                                 col.names = features$Name))</code></pre>
+<p>And then the test set:</p>
+<pre class="r"><code>testData &lt;- cbind(read.table(file=paste0(dataLoc,&quot;test/subject_test.txt&quot;), 
+                               col.names = &quot;SubjectID&quot;),
+                  read.table(file=paste0(dataLoc,&quot;test/y_test.txt&quot;), 
+                               col.names = &quot;Activity&quot;),
+                  read.table(file=paste0(dataLoc,&quot;test/X_test.txt&quot;), 
+                               col.names = features$Name))</code></pre>
+</div>
+<div id="merge-subsets-of-training-and-test-datasets" class="section level1">
+<h1>Merge (subsets of) training and test datasets</h1>
+<p>We now create a data frame from the above two types of data. However, we only extract the means and standard deviations of each measurement. Note that I have therefore skipped the columns which are the Fourier transformations of the measurements.</p>
+<pre class="r"><code>selectedColumns &lt;- c(&quot;SubjectID&quot;, &quot;Activity&quot;,
+                     grep(&quot;^[^f].+\\.mean\\.&quot;,names(testData),value = TRUE),
+                     grep(&quot;^[^f].+std&quot;,names(testData),value = TRUE))
+
+combinedData &lt;- rbind(trainingData[,selectedColumns],
+                      testData[,selectedColumns])
+
+# Arrange according to the subject id (use the activity to break ties):
+combinedData &lt;- plyr::arrange(combinedData, SubjectID, Activity)
+
+# Clear the raw data and flush memory
+rm(list=c(&quot;trainingData&quot;,&quot;testData&quot;)); gc()</code></pre>
+<pre><code>##           used (Mb) gc trigger (Mb) max used  (Mb)
+## Ncells  375955 20.1    3763080  201  3504994 187.2
+## Vcells 3033740 23.2   14415180  110 18018122 137.5</code></pre>
+<p>Ok, this leaves us with a total of 10299 rows and 42 columns. Let’s now rename the columns more clearly:</p>
+<pre class="r"><code># First, we remove the &quot;t&quot; at the start of variable names:
+names(combinedData) &lt;- gsub(&quot;^t&quot;,&quot;&quot;,names(combinedData))
+# Change &quot;Acc&quot; to a more descriptive &quot;Acceleration&quot;:
+names(combinedData) &lt;- gsub(&quot;Acc&quot;,&quot;Acceleration&quot;,names(combinedData))
+# Change &quot;Mag&quot; to a more descriptive &quot;Magnitude&quot;:
+names(combinedData) &lt;- gsub(&quot;Mag&quot;,&quot;Magnitude&quot;,names(combinedData))
+# Change &quot;Gyro&quot; to a more descriptive &quot;Gyroskope&quot;:
+names(combinedData) &lt;- gsub(&quot;Gyro&quot;,&quot;Gyroskope&quot;,names(combinedData))
+# Change &quot;std&quot; to &quot;sd&quot; (for R-style 'standard deviation'):
+names(combinedData) &lt;- gsub(&quot;\\.std&quot;,&quot;\\.sd&quot;,names(combinedData))
+
+
+# Then, we clean the dots and such:
+names(combinedData) &lt;- gsub(&quot;\\.{2,3}&quot;,&quot;&quot;,names(combinedData))</code></pre>
+<p>Next, we add descriptive values to the activity:</p>
+<pre class="r"><code>combinedData$Activity &lt;- activityLabels$Activity[combinedData$Activity]</code></pre>
+</div>
+<div id="calculate-averages" class="section level1">
+<h1>Calculate averages</h1>
+<p>The instructions mention taking averages of each activity per subject. However, since averaging standard deviations is a “statistical crime” (!), we only include the averages of the means:</p>
+<pre class="r"><code>library(dplyr)
+
+# Create symbols for the columns we wish to group by
+groupCols &lt;- names(combinedData)[(1:2)]
+
+# Find the columns we actually want to take the mean of:
+valCols &lt;- grep(&quot;\\.mean&quot;,names(combinedData),value = TRUE)
+
+# Use the dplyr package to group the data and find means
+combinedData.summary &lt;- (combinedData %&gt;% 
+  group_by_(.dots=groupCols) %&gt;% 
+  summarize_each_(funs(mean),vars=valCols))</code></pre>
+<blockquote>
+<p>Note that the above dplyr came from <a href="http://stackoverflow.com/questions/21208801/group-by-multiple-columns-in-dplyr-using-string-vector-input">StackOverflow</a>, but the documentation probably contains the same information.</p>
+</blockquote>
+</div>
+<div id="create-new-tidy-dataset" class="section level1">
+<h1>Create new tidy dataset</h1>
+<p>We name the new data “activityMonitor.csv”:</p>
+<pre class="r"><code>write.csv(x = combinedData.summary, file = &quot;activityMonitor.csv&quot;, row.names=FALSE)</code></pre>
+</div>
 
 
 

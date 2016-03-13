@@ -1,66 +1,33 @@
----
-title: "Merge Data Sets - Create Tidy Data"
-author: "Baldvin Einarsson"
-date: "March 12, 2016"
-output: 
-  html_document:
-    keep_md: true
----
-
-```{r setup, echo=FALSE, purl=FALSE, warning=FALSE, message=FALSE, results='hide'}
-library(knitr)
-opts_knit$set(comment=NA)
-
-# NB: We need to allow duplicate labels in order to purl
-#  (Even though nothing is duplicated)
-options(knitr.duplicate.label = 'allow')
-purl(input="run_analysis.Rmd", output="run_analysis.R", documentation = 1)
-```
-
-We assume that the data has been downloade and unzipped (via script `getData.R`), the location of which is the folder `UCI HAR Dataset/`:
-```{r setFolderLoc}
+## ----setFolderLoc--------------------------------------------------------
 dataLoc <- "UCI HAR Dataset/"
-```
 
-# Get Labels and Feature Names
-
-First, we get the activity labels:
-```{r getLabels}
+## ----getLabels-----------------------------------------------------------
 activityLabels <- read.table(paste0(dataLoc,"activity_labels.txt"),
                              header = FALSE,
                              col.names = c("Value","Activity"),
                              stringsAsFactors = FALSE
                              )
-```
 
-Then, we obtain the names of the features:
-```{r getFeatures}
+## ----getFeatures---------------------------------------------------------
 features <- read.table(paste0(dataLoc,"features.txt"),
                        header=FALSE,
                        row.names = 1,
                        col.names = c("RowNum","Name"),
                        stringsAsFactors = FALSE)
-```
 
-Since we're only interested in the means and standard deviations, we find out which features have "mean" and "std" in their names:
-```{r findMeanStdFeatures}
+## ----findMeanStdFeatures-------------------------------------------------
 meanFeatures <- grepl("mean",features$Name)
 stdFeatures <- grepl("std",features$Name)
-```
 
-# Read Data
-
-First, we read the training set:
-```{r getTrainingSet}
+## ----getTrainingSet------------------------------------------------------
 trainingData <- cbind(read.table(file=paste0(dataLoc,"train/subject_train.txt"),
                                  col.names = "SubjectID"),
                       read.table(file=paste0(dataLoc,"train/y_train.txt"), 
                                  col.names = "Activity"),
                       read.table(file=paste0(dataLoc,"train/X_train.txt"), 
                                  col.names = features$Name))
-```
-And then the test set:
-```{r getTestSet}
+
+## ----getTestSet----------------------------------------------------------
 
 testData <- cbind(read.table(file=paste0(dataLoc,"test/subject_test.txt"), 
                                col.names = "SubjectID"),
@@ -68,14 +35,8 @@ testData <- cbind(read.table(file=paste0(dataLoc,"test/subject_test.txt"),
                                col.names = "Activity"),
                   read.table(file=paste0(dataLoc,"test/X_test.txt"), 
                                col.names = features$Name))
-```
 
-
-# Merge (subsets of) training and test datasets 
-
-We now create a data frame from the above two types of data. However, we only extract the means and standard deviations of each measurement. Note that I have therefore skipped the columns which are the Fourier transformations of the measurements.
-
-```{r mergeAndSubset}
+## ----mergeAndSubset------------------------------------------------------
 selectedColumns <- c("SubjectID", "Activity",
                      grep("^[^f].+\\.mean\\.",names(testData),value = TRUE),
                      grep("^[^f].+std",names(testData),value = TRUE))
@@ -88,11 +49,8 @@ combinedData <- plyr::arrange(combinedData, SubjectID, Activity)
 
 # Clear the raw data and flush memory
 rm(list=c("trainingData","testData")); gc()
-```
 
-Ok, this leaves us with a total of `r nrow(combinedData)` rows and `r ncol(combinedData)` columns. Let's now rename the columns more clearly:
-
-```{r renameColumns}
+## ----renameColumns-------------------------------------------------------
 # First, we remove the "t" at the start of variable names:
 names(combinedData) <- gsub("^t","",names(combinedData))
 # Change "Acc" to a more descriptive "Acceleration":
@@ -108,19 +66,11 @@ names(combinedData) <- gsub("\\.std","\\.sd",names(combinedData))
 # Then, we clean the dots and such:
 names(combinedData) <- gsub("\\.{2,3}","",names(combinedData))
 
-```
 
-Next, we add descriptive values to the activity:
-
-```{r descriptiveActivity}
+## ----descriptiveActivity-------------------------------------------------
 combinedData$Activity <- activityLabels$Activity[combinedData$Activity]
-```
 
-# Calculate averages
-
-The instructions mention taking averages of each activity per subject. However, since averaging standard deviations is a "statistical crime" (!), we only include the averages of the means:
-
-```{r calculateAverages, warning=FALSE, message=FALSE}
+## ----calculateAverages, warning=FALSE, message=FALSE---------------------
 
 library(dplyr)
 
@@ -135,14 +85,7 @@ combinedData.summary <- (combinedData %>%
   group_by_(.dots=groupCols) %>% 
   summarize_each_(funs(mean),vars=valCols))
 
-```
 
-> Note that the above dplyr came from [StackOverflow](http://stackoverflow.com/questions/21208801/group-by-multiple-columns-in-dplyr-using-string-vector-input), but the documentation probably contains the same information.
-
-# Create new tidy dataset
-
-We name the new data "activityMonitor.csv":
-
-```{r writeNewData}
+## ----writeNewData--------------------------------------------------------
 write.csv(x = combinedData.summary, file = "activityMonitor.csv", row.names=FALSE)
-```
+
