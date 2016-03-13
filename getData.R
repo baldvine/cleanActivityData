@@ -3,14 +3,11 @@ fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%2
 zipName <- "activityData.zip"
 
 ## ----downloadFile, echo=TRUE---------------------------------------------
-
 if (!file.exists(zipName)){
   download.file(url=fileURL, destfile = zipName, method='curl')
 }
 
-
 ## ----unzip, results='hide'-----------------------------------------------
-
 # Get the file names of the files in the zip:
 zippedFiles <- unzip(zipfile = zipName, list=TRUE)
 # Obtain the directory name:

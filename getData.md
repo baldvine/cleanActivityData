@@ -16,8 +16,6 @@ This markdown file generates an `R` script which obtains the data and unzips it 
 
 [https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip)
 
-
-
 We start by downloading the file (if needed):
 
 

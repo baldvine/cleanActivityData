@@ -33,17 +33,14 @@ cat(paste0("[",fileURL,"](",fileURL,")"))
 We start by downloading the file (if needed):
 
 ```{r downloadFile, echo=TRUE}
-
 if (!file.exists(zipName)){
   download.file(url=fileURL, destfile = zipName, method='curl')
 }
-
 ```
 
 Then, we unzip it and remove the space in the directory name:
 
 ```{r unzip, results='hide'}
-
 # Get the file names of the files in the zip:
 zippedFiles <- unzip(zipfile = zipName, list=TRUE)
 # Obtain the directory name:

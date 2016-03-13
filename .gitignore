@@ -25,4 +25,4 @@ vignettes/*.pdf
 .httr-oauth
 
 # Data folder:
-UCI*
+UCI*/
