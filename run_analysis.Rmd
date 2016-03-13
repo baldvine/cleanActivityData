@@ -8,6 +8,8 @@ output:
 ---
 
 ```{r setup, echo=FALSE, purl=FALSE, warning=FALSE, message=FALSE, results='hide'}
+rm(list=ls())
+
 library(knitr)
 opts_knit$set(comment=NA)
 

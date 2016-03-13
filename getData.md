@@ -25,7 +25,7 @@ if (!file.exists(zipName)){
 }
 ```
 
-Then, we unzip it and remove the space in the directory name:
+Then, we unzip it:
 
 
 ```r
@@ -39,3 +39,4 @@ if (!file.exists(zipDir)){
 }
 ```
 
+Note that this file will not be included in the GitHub repository.

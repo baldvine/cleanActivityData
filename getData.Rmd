@@ -38,7 +38,7 @@ if (!file.exists(zipName)){
 }
 ```
 
-Then, we unzip it and remove the space in the directory name:
+Then, we unzip it:
 
 ```{r unzip, results='hide'}
 # Get the file names of the files in the zip:
@@ -51,3 +51,4 @@ if (!file.exists(zipDir)){
 }
 ```
 
+Note that this file will not be included in the GitHub repository.
