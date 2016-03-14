@@ -87,5 +87,6 @@ combinedData.summary <- (combinedData %>%
 
 
 ## ----writeNewData--------------------------------------------------------
-write.csv(x = combinedData.summary, file = "activityMonitor.csv", row.names=FALSE)
+write.table(x = combinedData.summary, file = "activityMonitor.csv", 
+            sep = ",", row.names=FALSE)
 

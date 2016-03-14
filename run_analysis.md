@@ -85,8 +85,8 @@ rm(list=c("trainingData","testData")); gc()
 
 ```
 ##           used (Mb) gc trigger (Mb) max used  (Mb)
-## Ncells  375955 20.1    3763080  201  3504994 187.2
-## Vcells 3033740 23.2   14415180  110 18018122 137.5
+## Ncells  375961 20.1    3763080  201  3505138 187.2
+## Vcells 3033766 23.2   14415424  110 18018364 137.5
 ```
 
 Ok, this leaves us with a total of 10299 rows and 42 columns. Let's now rename the columns more clearly:
@@ -144,5 +144,6 @@ We name the new data "activityMonitor.csv":
 
 
 ```r
-write.csv(x = combinedData.summary, file = "activityMonitor.csv", row.names=FALSE)
+write.table(x = combinedData.summary, file = "activityMonitor.csv", 
+            sep = ",", row.names=FALSE)
 ```

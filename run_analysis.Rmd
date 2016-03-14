@@ -146,5 +146,6 @@ combinedData.summary <- (combinedData %>%
 We name the new data "activityMonitor.csv":
 
 ```{r writeNewData}
-write.csv(x = combinedData.summary, file = "activityMonitor.csv", row.names=FALSE)
+write.table(x = combinedData.summary, file = "activityMonitor.csv", 
+            sep = ",", row.names=FALSE)
 ```
